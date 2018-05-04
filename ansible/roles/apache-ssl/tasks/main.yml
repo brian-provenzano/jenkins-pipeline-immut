@@ -1,0 +1,23 @@
+---
+#this is all ubuntu/debian specific 
+#TODO - add conditionals here to handle RHEL based distros
+- name: enabled mod_ssl
+  apache2_module: name=ssl state=present
+
+- template:
+    src: ssl.conf
+    dest: /etc/apache2/sites-available/
+    owner: www-data
+    group: www-data
+    mode: '0600'
+
+- name: a2dissite remove all defaults
+  command: a2dissite default
+  args:
+    removes: /etc/apache2/sites-enabled/default.conf
+
+- name: a2ensite enable our ssl site
+  command: a2ensite ssl
+  args:
+    creates: /etc/apache2/sites-enabled/ssl.conf
+  notify: reload apache

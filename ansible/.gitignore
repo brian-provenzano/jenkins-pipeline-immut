@@ -1,0 +1,5 @@
+*.retry
+roles/common-laptop/files/*
+hosts
+*.cfg
+*.gpg

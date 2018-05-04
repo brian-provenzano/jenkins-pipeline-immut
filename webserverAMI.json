@@ -1,0 +1,45 @@
+{
+  "_comment": "Simple web server image - Ubuntu 16.04LTS",
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "region": "us-west-2",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "source_ami" : "ami-22741f5a",
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "web-apache-ubuntu1604-{{timestamp}}",
+      "tags": {
+        "OS_Version": "ubuntu",
+        "Release": "18.04",
+        "Purpose": "web"
+  }
+  }],
+  "provisioners": [
+    {
+      "type": "ansible",
+      "user": "jenkins",
+      "playbook_file": "ansible/apache-playbook-aws.yml",
+      "extra_arguments": [ "-b","-u ubuntu" ],
+      "ansible_env_vars": [ "ANSIBLE_HOST_KEY_CHECKING=False", "ANSIBLE_SSH_ARGS='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o AddKeysToAgent=no -o ControlMaster=no -o ControlPersist=60s'"]
+    }
+  ],
+  
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "manifest.json",
+      "strip_path": true
+    },
+    {
+      "type": "shell-local",
+      "script": "./get_ami.sh"
+    }
+  ]
+
+
+}

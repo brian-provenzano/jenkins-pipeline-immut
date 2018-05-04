@@ -1,0 +1,24 @@
+---
+# TODO : temp just to check n stuff (remove later)
+# - name: Display all variables/facts known for a host
+#   debug:
+#     var: hostvars[inventory_hostname]
+#     verbosity: 4
+
+#TODO - conditionals for RHEL based systems
+#also consider moving this to another role to prevent accidental playbook upgrades...
+- name: update and upgrade apt packages
+  apt:
+    upgrade: yes
+    force_apt_get: yes
+    update_cache: yes
+
+- name: install htop
+  package: 
+    name: htop
+    state: present
+
+- name: install git
+  package: 
+    name: git
+    state: present

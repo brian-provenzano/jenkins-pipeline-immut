@@ -1,0 +1,40 @@
+---
+# Load a variable file based on the OS type, or a default if not found.
+- include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version | int}}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+  when: apache_pkgname is not defined
+
+- name: Installs apache web server
+  package: 
+    name: "{{ apache_pkgname }}"
+    state: present
+  notify:
+    - enable apache 
+    - start apache
+
+- name: Upload default index.html for host
+  copy: src=default-apache-index.html dest=/var/www/html/index.html mode=0644
+  ignore_errors: True
+
+- name: Install default apache site conf for specified site
+  template:
+    src: apache.j2
+    dest: /etc/apache2/sites-available/default.conf
+    owner: www-data
+    group: www-data
+    mode: '0600'
+
+- name: a2dissite remove all original defaults
+  command: a2dissite 000-default
+  args:
+    removes: /etc/apache2/sites-enabled/000-default.conf
+
+- name: a2ensite enable our default site
+  command: a2ensite default
+  args:
+    creates: /etc/apache2/sites-enabled/default.conf
+  notify: reload apache

@@ -1,0 +1,51 @@
+---
+#this is all ubuntu/debian specific 
+#TODO - add conditionals here to handle RHEL based distros
+
+- name: enabled mod_ssl
+  apache2_module: name=ssl state=present
+
+- name: update and upgrade apt packages
+  apt:
+    upgrade: yes
+    force_apt_get: yes
+    update_cache: yes
+
+- name: certbot - install software-properties-common
+  package: 
+    name: software-properties-common
+    state: present
+
+- name: certbot - install repo ppa for certbot
+  apt_repository:
+    repo: 'ppa:certbot/certbot'
+
+- name: certbot - install python-certbot-apache
+  package: 
+    name: python-certbot-apache
+    state: present
+
+- name: Install apache site conf for le site
+  template:
+    src: apachessl-le.j2
+    dest: /etc/apache2/sites-available/ssl-le.conf
+    owner: www-data
+    group: www-data
+    mode: '0600'
+
+- name: enable the letsencrypt ssl site
+  command: a2ensite ssl-le
+  args:
+    creates: /etc/apache2/sites-enabled/ssl-le.conf
+
+- name: certbot - run certbot and get a cert (staging URL)
+  command: certbot certonly --webroot -w /var/www/html --staging --agree-tos --non-interactive --email {{ letsencrypt_email }} -d {{ letsencrypt_domain }}
+  args:
+    creates: /etc/letsencrypt/live/{{ letsencrypt_domain }}
+  notify: restart apache
+
+- name: add cronjob for letsencrypt cert auto renewal
+  cron:
+    name: letsencrypt_renewal
+    special_time: daily
+    job: certbot --staging --renew && systemctl reload apache2

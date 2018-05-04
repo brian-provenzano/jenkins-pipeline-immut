@@ -1,0 +1,21 @@
+---
+# Load a variable file based on the OS type, or a default if not found.
+- include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version | int}}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+  when: apache_srvname is not defined
+
+- name: start apache
+  systemd: state=started name={{ apache_srvname }}
+
+- name: reload apache
+  systemd: state=reloaded name={{ apache_srvname }}
+  
+- name: enable apache
+  systemd:
+    name: "{{ apache_srvname }}"
+    enabled: yes
+    masked: no
