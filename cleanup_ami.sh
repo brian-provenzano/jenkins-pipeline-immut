@@ -1,8 +1,8 @@
 #!/bin/bash
-if [ $# -ne 4 ]; then
-    echo "You are missing args (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION required)"
-    exit
-fi
+# if [ $# -ne 4 ]; then
+#     echo "You are missing args (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION required)"
+#     exit
+# fi
 export AWS_ACCESS_KEY_ID=$1 
 export AWS_SECRET_ACCESS_KEY=$2
 export AWS_DEFAULT_REGION=$3
