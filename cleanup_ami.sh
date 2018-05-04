@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ $# -neq 4 ]; then
+if [ $# -ne 4 ]; then
     echo "You are missing args (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION required)"
     exit
 fi
