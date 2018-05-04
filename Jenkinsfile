@@ -107,7 +107,7 @@ pipeline {
                 //cleanup AMI created - since this is testing :  ec2-deregister,ec2-delete-snapshot 
                 echo "Cleanup AMI - delete snapshot and AMI deregister - this is lab/testing"
                 sh "chmod +x cleanup_ami.sh"
-                //sh "./cleanup_ami.sh ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} us-west-2"
+                sh "./cleanup_ami.sh ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} us-west-2"
 
             }
         }
