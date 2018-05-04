@@ -22,14 +22,11 @@ pipeline {
     options {
         buildDiscarder(logRotator(numToKeepStr:'5', artifactNumToKeepStr: '3'))
     }
-
-    stages{
         //TODO :
-        //Build the code, run tests
-        //Create packer image configured via ansible ; pack in the new code
-        //create the infra with TF (simple; no ASG etc)
-        //Deploy image (simple) 
-        //consider set +o history
+        //Build the small app/code, run tests , Create packer image configured via ansible ; pack in the new code
+        //consider set +o history to avoid bash_history of secrets??
+    stages{
+        
          stage('Check-Update-Init Terraform'){
             agent any
                 steps{
@@ -83,6 +80,9 @@ pipeline {
 
         stage('Cleanup TF AWS Resources'){
             agent any
+            environment{
+                NEWAMI = readFile 'ami.txt'
+            }
             when {
                 expression { params.TF_CLEANUP == true }
             }
@@ -104,8 +104,10 @@ pipeline {
                 expression { params.AMI_CLEANUP == true && params.TF_CLEANUP == true }
             }
             steps{
-                //TODO: cleanup AMI created - since this is testing :  ec2-deregister,ec2-delete-snapshot 
+                //cleanup AMI created - since this is testing :  ec2-deregister,ec2-delete-snapshot 
                 echo "Cleanup AMI - delete snapshot and AMI deregister - this is lab/testing"
+                sh "chmod +x cleanup_ami.sh"
+                sh "./cleanup_ami.sh ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} us-west-2"
 
             }
         }
