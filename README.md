@@ -3,6 +3,8 @@
 
 ## Jenkins Declarative Pipeline Example (with packer, terraform, aws, ansible)
 
+NOTE: This can be used with my custom Jenkins containers : [jenkins docker alpine](https://github.com/brian-provenzano/jenkins-alpine-container) and [jenkins docker debian](https://github.com/brian-provenzano/jenkins-container)
+
 ### Details
 Contains simple Jenkins pipeline that does the following:
 - Create a custom AWS AMI using Packer; Ansible provisioner to config the image
