@@ -87,12 +87,13 @@ pipeline {
                 expression { params.TF_CLEANUP == true }
             }
             steps{
-                script {
-                    def time = params.TF_CLEANUP_SLEEP
-                }
                 //TODO cleanup TF infra if param present; maybe... since this is testing
                 echo "Cleanup TF infra / destroy - this is a lab/testing"
-                sleep time.toInteger() //sleep time before destroying infra to allow a bit of testing
+
+                script {
+                    def sleeptime = params.TF_CLEANUP_SLEEP
+                    sleep sleeptime.toInteger() //sleep time before destroying infra to allow a bit of testing
+                }
                 sh "terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
             }
         }
