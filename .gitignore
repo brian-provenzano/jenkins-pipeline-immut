@@ -1,0 +1,35 @@
+
+#ansible related
+*.retry
+hosts
+*.cfg
+
+
+#vscode 
+############
+.vscode
+.vscode/
+
+# terraform #
+#####################
+*.tfstate
+*.tfstate.backup
+.tfplan
+awskeynames.tf
+terraform.tfvars
+
+# Module directory
+.terraform/
+
+# keys - just in case; really should not be here but this is CYA territory #
+#######################
+*.pem
+*.gpg
+####MISC#####
+
+#ignore log files
+*.log
+
+###
+*.asc
+
