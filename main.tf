@@ -19,7 +19,7 @@ provider "template" {
 
 # ROUTE53 -- TODO put this global... just playing now
 data "aws_route53_zone" "selected" {
-  name         = "thenuclei.org."
+  name         = "notatuna.com."
   private_zone = false
 }
 
