@@ -91,7 +91,7 @@ pipeline {
                 echo "This is the AMI we are deploying from the txt file: ${env.NEWAMI}"
 
                 dir('tf-singleweb'){
-                    echo()
+                    echo "Deploying AMI to Single Web Server (No ASG)"
                     sh "terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                     sh "terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 }
@@ -119,7 +119,7 @@ pipeline {
                 echo "This is the AMI we are deploying from the txt file: ${env.NEWAMI}"
 
                 dir('tf-asgweb'){
-                    echo()
+                    echo "Deploying AMI to ASG / ELB Web Servers"
                     sh "terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                     sh "terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 }
