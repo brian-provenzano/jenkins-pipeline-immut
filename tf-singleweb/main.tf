@@ -29,7 +29,7 @@ data "aws_route53_zone" "selected" {
 
 # -- CREATE vpc, subnets, security groups, eips, network ACLs etc.
 module "networking" {
-  source = "terraform-modules/networking"
+  source = "../terraform-modules/networking"
 
   #module inputs
   environment        = "${var.environment}"
@@ -54,7 +54,7 @@ module "networking" {
 }
 
 module "simplewebserver" {
-  source = "terraform-modules/simplewebserver"
+  source = "../terraform-modules/simplewebserver"
 
   #module inputs
   environment  = "${var.environment}"

@@ -17,40 +17,6 @@ variable "name" {
   description = "The name for the instance"
 }
 
-# TODO
-# variable "elb_accesslogs_s3bucket" {
-#   description = "Name of the s3 bucket to use to store ELB access logs"
-#   default = "terraform-thenuclei.org-logs"
-# }
-
-#templates for instances / launch configs
-# data "template_file" "bastion_userdata" {
-#   template = "${file("../global/files/bootstraps/config-bastion.txt")}"
-#   vars {
-#     bastion_elasticip_id = "${module.networking.bastion_elasticip_id}"
-#     region_eip = "${var.region_uswest2}"
-#   }
-# }
-# data "template_file" "webservers_userdata" {
-#   template = "${file("../global/files/bootstraps/config-singleweb.sh")}"
-#   vars {
-#     # normally this is done by changing AMI (new AMI built with new code), 
-#     # but cheating here for demo purpose since changes to userdata force it as well
-#     force_redeploy = "touchme-to-v1" #just increment 1->2 to force a redeploy of ASG/instances etc.
-#   }
-# }
-
-# RDS secrets
-# variable "mysql_dbname" {
-#   description = "The dbname for the mysql RDS instance"
-# }
-# variable "mysql_user" {
-#   description = "The username for the mysql RDS instance admin user"
-# }
-# variable "mysql_pwd" {
-#   description = "The password for the mysql RDS instance admin user"
-# }
-
 # ---------------------
 # Networking 
 # (Testing specific env)
@@ -75,23 +41,6 @@ variable "publicsubnet_two_cidr" {
   description = "The CIDR of public subnet two"
   default     = "10.100.2.0/24"
 }
-
-# variable "privatesubnet_one_cidr" {
-#   description = "The CIDR of private subnet one"
-#   default = "10.100.10.0/24"
-# }
-# variable "privatesubnet_two_cidr" {
-#   description = "The CIDR of private subnet two"
-#   default = "10.100.20.0/24"
-# }
-# variable "private_db_subnet_one_cidr" {
-#   description = "The CIDR of private subnet one for databases"
-#   default = "10.100.100.0/24"
-# }
-# variable "private_db_subnet_two_cidr" {
-#   description = "The CIDR of private subnet two for databases"
-#   default = "10.100.200.0/24"
-#}
 
 # --------------------------------------------------------------------------------------
 # REGIONS (TODO - refactor to global level or something..this is crap)

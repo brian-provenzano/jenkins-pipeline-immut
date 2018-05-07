@@ -1,0 +1,16 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:AssociateAddress",
+        "ec2:DescribeAddresses",
+        "ec2:AllocateAddress",
+        "ec2:EIPAssociation",
+        "ec2:DisassociateAddress"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}

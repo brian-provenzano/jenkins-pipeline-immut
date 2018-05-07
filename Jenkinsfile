@@ -7,6 +7,7 @@ pipeline {
         AWS_ID = credentials("AWS_ID")
         AWS_ACCESS_KEY_ID = "${env.AWS_ID_USR}"
         AWS_SECRET_ACCESS_KEY = "${env.AWS_ID_PSW}"
+        NO_BASH_HISTORY = "set +o history"
     }
 
     parameters { 
@@ -14,6 +15,8 @@ pipeline {
             description: 'Cleanup the AWS resources  (TF destroy) when we are done') 
         booleanParam(name: 'AMI_CLEANUP', defaultValue: true, 
             description: 'Cleanup the AWS AMI custom images when we are done') 
+        booleanParam(name: 'TF_ASG', defaultValue: true, 
+            description: 'Option to setup multiple web servers in ASG') 
         string(name: 'TF_CLEANUP_SLEEP', defaultValue: '300', 
             description: 'Seconds to sleep before TF cleaup (if selected)')
         }
@@ -24,7 +27,6 @@ pipeline {
     }
         //TODO :
         //Build the small app/code, run tests , Create packer image configured via ansible ; pack in the new code
-        //consider set +o history to avoid bash_history of secrets??
     stages{
         
          stage('Check-Update-Init Terraform'){
@@ -36,9 +38,12 @@ pipeline {
                         def tfout = sh returnStdout: true, script: 'terraform --version'
                         echo "tf output: ${tfout}"
                     }
-
-                    sh "terraform init -input=false -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}'"
-                    echo "Should we TR cleanup/destroy?  ${TF_CLEANUP}"
+                    
+                    dir('tf-singleweb'){
+                        sh "terraform init -input=false -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}'"
+                    }
+                    
+                    //echo "Should we TR cleanup/destroy?  ${TF_CLEANUP}"
                 }
             }
         
@@ -67,14 +72,19 @@ pipeline {
                 echo "Deploy AMI"
                 echo "This is the AMI from the txt file - trimmed: "
                 echo "${env.NEWAMI}"
+
+                dir('tf-singleweb'){
+                    sh "terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                    sh "terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                }
+
                 //sh "terraform plan -out webserver.plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
-                sh "terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 //TODO: run tf apply - this should be a sep step (possibly) for human approval..something to think on
                 //sh "terraform apply \"webserver.plan\" -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
-                sh "terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 //echo "This is the AMI from the txt file - trimmed: "
                 //sh 'export NEWAMI=$(cat ami.txt | tr -d \'[:space:]\')'
                 //sh 'echo ${NEWAMI}'
+
             }
         }
 
@@ -94,7 +104,10 @@ pipeline {
                     def sleeptime = params.TF_CLEANUP_SLEEP
                     sleep sleeptime.toInteger() //sleep time before destroying infra to allow a bit of testing
                 }
-                sh "terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                dir('tf-singleweb'){
+                    sh "terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                }
+                
             }
         }
 

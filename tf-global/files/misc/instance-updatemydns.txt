@@ -1,0 +1,24 @@
+sudo touch updatedns.json
+NEWIP="$(curl http://169.254.169.254/latest/meta-data/public-ipv4)"
+echo "${NEWIP}"
+sudo cat > updatedns.json <<EOF
+{
+    "Comment": "Update record for new boot publicIP",
+    "Changes": [
+        {
+            "Action": "UPSERT",
+            "ResourceRecordSet": {
+                "Name": "jenkins.thenuclei.org.",
+                "Type": "A",
+                "TTL": 300,
+                "ResourceRecords": [
+                    {
+                        "Value": "${NEWIP}"
+                    }
+                ]
+            }
+        }
+    ]
+}
+EOF
+aws route53 change-resource-record-sets --hosted-zone-id <hostedzoneid> --change-batch updatedns.json
