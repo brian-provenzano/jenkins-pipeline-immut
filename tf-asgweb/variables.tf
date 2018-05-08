@@ -40,17 +40,17 @@ data "template_file" "webservers_userdata" {
 }
 
 # RDS secrets
-variable "mysql_dbname" {
-  description = "The dbname for the mysql RDS instance"
-}
+# variable "mysql_dbname" {
+#   description = "The dbname for the mysql RDS instance"
+# }
 
-variable "mysql_user" {
-  description = "The username for the mysql RDS instance admin user"
-}
+# variable "mysql_user" {
+#   description = "The username for the mysql RDS instance admin user"
+# }
 
-variable "mysql_pwd" {
-  description = "The password for the mysql RDS instance admin user"
-}
+# variable "mysql_pwd" {
+#   description = "The password for the mysql RDS instance admin user"
+# }
 
 # ---------------------
 # Networking 
@@ -157,14 +157,30 @@ variable "centos7_amis" {
 }
 
 # Keys
-variable "key_name_uswest1" {}
+variable "key_name_uswest1" {
+  default = ""
+}
 
-variable "key_file_uswest1" {}
-variable "aws_uswest1_sharedcredentialsfile" {}
-variable "aws_uswest1_sharedcredentialsprofile" {}
+#variable "key_file_uswest1" {}
+variable "aws_accesskey_uswest1" {
+  default = ""
+}
+
+variable "aws_secretkey_uswest1" {
+  default = ""
+}
+
+# variable "key_name_uswest1" {}
+
+# variable "key_file_uswest1" {}
+# variable "aws_uswest1_sharedcredentialsfile" {}
+# variable "aws_uswest1_sharedcredentialsprofile" {}
 
 # ---Our Custom AMIs via Packer
 # TODO
+variable "ami" {
+  description = "The ID of the AMI to deploy"
+}
 
 # ---------------------
 # US-WEST-2 (OR) region
@@ -185,11 +201,18 @@ variable "azs_uswest2" {
 }
 
 # Keys
+
 variable "key_name_uswest2" {}
 
-variable "key_file_uswest2" {}
-variable "aws_uswest2_sharedcredentialsfile" {}
-variable "aws_uswest2_sharedcredentialsprofile" {}
+#variable "key_file_uswest2" {}
+
+variable "aws_accesskey_uswest2" {}
+
+variable "aws_secretkey_uswest2" {} # variable "key_name_uswest2" {}
+
+# variable "key_file_uswest2" {}
+# variable "aws_uswest2_sharedcredentialsfile" {}
+# variable "aws_uswest2_sharedcredentialsprofile" {}
 
 # ---------------------
 # US-EAST-2 (OH) region

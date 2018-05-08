@@ -7,10 +7,10 @@ terraform {
 # CONFIGURE AWS CONNECTION (PROVIDER)
 # ------------------------------------------------------------------------------
 provider "aws" {
-  version                 = "~> 1.9"
-  region                  = "${var.region_uswest2}"
-  shared_credentials_file = "${var.aws_uswest2_sharedcredentialsfile}"
-  profile                 = "${var.aws_uswest2_sharedcredentialsprofile}"
+  version    = "~> 1.9"
+  region     = "${var.region_uswest2}"
+  access_key = "${var.aws_accesskey_uswest2}"
+  secret_key = "${var.aws_secretkey_uswest2}"
 }
 
 provider "template" {
