@@ -98,11 +98,12 @@ module "bastion" {
 
   lc_iam_eip_instanceprofile = "${aws_iam_instance_profile.EC2ManageEIP.id}"
   lc_keyname                 = "${var.key_name_uswest2}"
-  lc_keyfile                 = "${var.key_file_uswest2}"
-  lc_instanceuser            = "ec2-user"
-  lc_imageid                 = "${lookup(var.amzlinux_amis, var.region_uswest2)}"
-  lc_securitygroups          = ["${module.networking.bastion_security_group_id}"]
-  lc_userdata                = "${data.template_file.bastion_userdata.rendered}"
+
+  #lc_keyfile                 = "${var.key_file_uswest2}"
+  lc_instanceuser   = "ec2-user"
+  lc_imageid        = "${lookup(var.amzlinux_amis, var.region_uswest2)}"
+  lc_securitygroups = ["${module.networking.bastion_security_group_id}"]
+  lc_userdata       = "${data.template_file.bastion_userdata.rendered}"
 }
 
 # -- CREATE webservers cluster (w/ autoscaling)
@@ -120,12 +121,13 @@ module "asg_webservers" {
   asg_elbcapacity  = 2
 
   #asg_subnets = ["${module.networking.private_subnetone_id}","${module.networking.private_subnettwo_id}"]
-  asg_subnets       = ["${module.networking.private_subnets}"]
-  lc_keyname        = "${var.key_name_uswest2}"
-  lc_keyfile        = "${var.key_file_uswest2}"
+  asg_subnets = ["${module.networking.private_subnets}"]
+  lc_keyname  = "${var.key_name_uswest2}"
+
+  #lc_keyfile        = "${var.key_file_uswest2}"
   lc_instancetype   = "t2.micro"
   lc_instanceuser   = "ubuntu"
-  lc_imageid        = "${lookup(var.ubuntu1604_amis, var.region_uswest2)}"
+  lc_imageid        = "${var.ami}"
   lc_securitygroups = ["${module.networking.clusterweb_security_group_id}"]
   lc_userdata       = ""
 

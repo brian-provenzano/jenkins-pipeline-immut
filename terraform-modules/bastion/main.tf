@@ -6,41 +6,47 @@ terraform {
 # 1- CREATE THE ASG FOR BASTION
 resource "aws_autoscaling_group" "bastion" {
   launch_configuration = "${aws_launch_configuration.bastion.id}"
-  name = "${var.bastionname}-asg"
-  vpc_zone_identifier = ["${var.asg_subnets}"]
+  name                 = "${var.bastionname}-asg"
+  vpc_zone_identifier  = ["${var.asg_subnets}"]
+
   # min/max of 1 makes sure we have 1 running at all times
-  min_size = 1
-  max_size = 1
+  min_size          = 1
+  max_size          = 1
   health_check_type = "EC2"
-  
+
   tag {
-    key ="Name"
-    value ="${var.bastionname}"
+    key                 = "Name"
+    value               = "${var.bastionname}"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Terraform"
-    value ="true"
+    key                 = "Terraform"
+    value               = "true"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Department"
-    value ="development"
+    key                 = "Department"
+    value               = "development"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Cluster"
-    value ="none"
+    key                 = "Cluster"
+    value               = "none"
     propagate_at_launch = "true"
   }
-   tag {
-    key ="Role"
-    value ="bastion"
+
+  tag {
+    key                 = "Role"
+    value               = "bastion"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Environment"
-    value ="${var.environment}"
+    key                 = "Environment"
+    value               = "${var.environment}"
     propagate_at_launch = "true"
   }
 }
@@ -48,17 +54,21 @@ resource "aws_autoscaling_group" "bastion" {
 # 2 - CREATE A BASTION LAUNCH CONFIGURATION 
 resource "aws_launch_configuration" "bastion" {
   name_prefix = "${var.bastionname}-lc-"
-  connection={
-    user="${var.lc_instanceuser}"
-    key_file="${var.lc_keyfilepath}"
+
+  connection = {
+    user = "${var.lc_instanceuser}"
+
+    #key_file="${var.lc_keyfilepath}"
   }
+
   iam_instance_profile = "${var.lc_iam_eip_instanceprofile}"
-  key_name = "${var.lc_keyname}"
+  key_name             = "${var.lc_keyname}"
+
   # use amazon linux for bastions - mainly b/c it comes shipped with aws cli
-  image_id = "${var.lc_imageid}"
-  instance_type = "t2.micro" #hardcoded on purpose; don't need more than this
+  image_id        = "${var.lc_imageid}"
+  instance_type   = "t2.micro"                   #hardcoded on purpose; don't need more than this
   security_groups = ["${var.lc_securitygroups}"]
-  user_data =  "${var.lc_userdata}"
+  user_data       = "${var.lc_userdata}"
 
   # Important note: whenever using a launch configuration with an auto scaling group, you must set
   # create_before_destroy = true. However, as soon as you set create_before_destroy = true in one resource, you must
@@ -71,8 +81,7 @@ resource "aws_launch_configuration" "bastion" {
     create_before_destroy = true
   }
 
-
-#testing : hardcode for now - make these configurable inputs!!
+  #testing : hardcode for now - make these configurable inputs!!
   # provisioner "file" {
   # source      = "my.pem"
   # destination = "/home/ec2user/my.pem"
@@ -82,15 +91,14 @@ resource "aws_launch_configuration" "bastion" {
   #   user     = "ec2user"
   #   private_key = "${file("my.pem")}"
   # }
-#}
-
+  #}
 }
 
 #create route53 record entry for bastion for name access
 resource "aws_route53_record" "bastion" {
   zone_id = "${var.route53_zoneid}"
-  name = "${var.bastionname}.${var.route53_zonename}"
-  type = "A"
-  ttl = "300"
+  name    = "${var.bastionname}.${var.route53_zonename}"
+  type    = "A"
+  ttl     = "300"
   records = ["${var.bastioneip}"]
 }

@@ -27,15 +27,18 @@ terraform {
 # 1 - CREATE THE ASG FOR WEBSERVERS
 resource "aws_autoscaling_group" "webservers" {
   launch_configuration = "${aws_launch_configuration.webservers.id}"
+
   # enforce zero downtime deploy: adding lc name to asg name forces recycle 
   # of ASG when lc is recycled
   name = "${var.webserversname}-asg-${aws_launch_configuration.webservers.name}"
+
   vpc_zone_identifier = ["${var.asg_subnets}"]
-  min_size = "${var.asg_minsize}"
-  max_size = "${var.asg_maxsize}"
+  min_size            = "${var.asg_minsize}"
+  max_size            = "${var.asg_maxsize}"
+
   # enforce zero downtime deploy: set to same size as min_size
-  min_elb_capacity = "${var.asg_elbcapacity}"
-  load_balancers = ["${aws_elb.webservers.name}"]
+  min_elb_capacity  = "${var.asg_elbcapacity}"
+  load_balancers    = ["${aws_elb.webservers.name}"]
   health_check_type = "ELB"
 
   #enforce zero downtime deploy: depends - create a new ASG before destroying the old one
@@ -44,33 +47,38 @@ resource "aws_autoscaling_group" "webservers" {
   }
 
   tag {
-    key ="Name"
-    value ="${var.webserversname}"
+    key                 = "Name"
+    value               = "${var.webserversname}"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Terraform"
-    value ="true"
+    key                 = "Terraform"
+    value               = "true"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Department"
-    value ="development"
+    key                 = "Department"
+    value               = "development"
     propagate_at_launch = "true"
   }
+
   tag {
-    key ="Cluster"
-    value ="webservers"
+    key                 = "Cluster"
+    value               = "webservers"
     propagate_at_launch = "true"
   }
-   tag {
-    key ="Role"
-    value ="web"
-    propagate_at_launch = "true"
-  }
+
   tag {
-    key ="Environment"
-    value ="${var.environment}"
+    key                 = "Role"
+    value               = "web"
+    propagate_at_launch = "true"
+  }
+
+  tag {
+    key                 = "Environment"
+    value               = "${var.environment}"
     propagate_at_launch = "true"
   }
 }
@@ -78,16 +86,21 @@ resource "aws_autoscaling_group" "webservers" {
 # 2 - CREATE A WEBSERVERS LAUNCH CONFIGURATION 
 resource "aws_launch_configuration" "webservers" {
   name_prefix = "${var.webserversname}-lc-"
-  connection={
-    user="${var.lc_instanceuser}"
-    key_file="${var.lc_keyfile}"
+
+  connection = {
+    user = "${var.lc_instanceuser}"
+
+    # key_file="${var.lc_keyfile}"
   }
-  key_name = "${var.lc_keyname}"
-  image_id = "${var.lc_imageid}"
+
+  key_name      = "${var.lc_keyname}"
+  image_id      = "${var.lc_imageid}"
   instance_type = "${var.lc_instancetype}"
+
   # was having issues with cloud init so falling back to shell script for now
   #user_data = "${file("../global/files/bootstraps/configweb.txt")}"
-  user_data =  "${var.lc_userdata}"
+  user_data = "${var.lc_userdata}"
+
   security_groups = ["${var.lc_securitygroups}"]
 
   # Important note: whenever using a launch configuration with an auto scaling group, you must set
@@ -104,39 +117,38 @@ resource "aws_launch_configuration" "webservers" {
 
 # 3 - CREATE AN ELB TO ROUTE TRAFFIC ACROSS THE WEBSERVERS ASG
 resource "aws_elb" "webservers" {
-  name = "${var.webserversname}-cluster-elb"
-  security_groups = ["${var.elb_securitygroups}"]
-  subnets = ["${var.elb_subnets}"]
-  cross_zone_load_balancing = "${var.elb_crosszonebalancing}"
-  idle_timeout = "${var.elb_idle_timeout}"
-  connection_draining = "${var.elb_connection_draining}"
+  name                        = "${var.webserversname}-cluster-elb"
+  security_groups             = ["${var.elb_securitygroups}"]
+  subnets                     = ["${var.elb_subnets}"]
+  cross_zone_load_balancing   = "${var.elb_crosszonebalancing}"
+  idle_timeout                = "${var.elb_idle_timeout}"
+  connection_draining         = "${var.elb_connection_draining}"
   connection_draining_timeout = "${var.elb_connection_draining_timeout}"
 
   health_check {
-    healthy_threshold = "${var.elb_healthythreshold}"
+    healthy_threshold   = "${var.elb_healthythreshold}"
     unhealthy_threshold = "${var.elb_unhealthythreshold}"
-    timeout = "${var.elb_healthchecktimeout}"
-    interval = "${var.elb_healthcheckinterval}"
-    target = "${var.elb_healthchecktarget}"
+    timeout             = "${var.elb_healthchecktimeout}"
+    interval            = "${var.elb_healthcheckinterval}"
+    target              = "${var.elb_healthchecktarget}"
   }
 
-
-# # Bucket
-# resource "aws_s3_bucket" "terraform_state" {
-#   bucket = "${var.environment}-${var.webserversname}-cluster-elb.thenuclei.org"
-#   versioning {
-#       enabled = true
-#   }
-#   lifecycle{
-#       prevent_destroy = true
-#   }
-#   tags {
-#       Name = "TerraformStateBucket"
-#       Environment = "global"
-#       Department = "development"
-#       Terraform = "true"
-#   }
-# }
+  # # Bucket
+  # resource "aws_s3_bucket" "terraform_state" {
+  #   bucket = "${var.environment}-${var.webserversname}-cluster-elb.thenuclei.org"
+  #   versioning {
+  #       enabled = true
+  #   }
+  #   lifecycle{
+  #       prevent_destroy = true
+  #   }
+  #   tags {
+  #       Name = "TerraformStateBucket"
+  #       Environment = "global"
+  #       Department = "development"
+  #       Terraform = "true"
+  #   }
+  # }
   #  access_logs {
   #   bucket = "${var.elb_accesslogs_s3bucket}"
   #   bucket_prefix = "${var.environment}/webservers-cluster-elb"
@@ -147,32 +159,30 @@ resource "aws_elb" "webservers" {
 
   # This adds a listener for incoming HTTP requests.
   listener {
-    lb_port = "${var.elb_listener_lb_http_port}"
-    lb_protocol = "http"
-    instance_port = "${var.elb_listener_http_instance_port}"
+    lb_port           = "${var.elb_listener_lb_http_port}"
+    lb_protocol       = "http"
+    instance_port     = "${var.elb_listener_http_instance_port}"
     instance_protocol = "http"
   }
-  
   #since we set it on ASG, we must set it here (ASG depends on ELB)
   lifecycle {
     create_before_destroy = true
   }
-
   tags {
-    Name = "${var.webserversname}-elb"
-    Terraform = "true"
-    Department = "development"
+    Name        = "${var.webserversname}-elb"
+    Terraform   = "true"
+    Department  = "development"
     Environment = "${var.environment}"
-    Cluster = "webservers"
-    Role = "web"
+    Cluster     = "webservers"
+    Role        = "web"
   }
 }
 
 #create route53 record entry for elb cluster for easy name access
 resource "aws_route53_record" "elbcluster" {
   zone_id = "${var.route53_zoneid}"
-  name = "${var.webserversname}.${var.route53_zonename}"
-  type = "CNAME"
-  ttl = "300"
+  name    = "${var.webserversname}.${var.route53_zonename}"
+  type    = "CNAME"
+  ttl     = "300"
   records = ["${aws_elb.webservers.dns_name}"]
 }
