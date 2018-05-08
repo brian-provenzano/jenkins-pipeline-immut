@@ -16,9 +16,9 @@ pipeline {
         booleanParam(name: 'AMI_CLEANUP', defaultValue: true, 
             description: 'Cleanup the AWS AMI custom images when we are done') 
         booleanParam(name: 'TF_ASG', defaultValue: false, 
-            description: 'Option to setup multiple web servers in ASG')
+            description: 'Option to setup multiple web servers in ASG/ELB')
         string(name: 'TF_CLEANUP_SLEEP', defaultValue: '300', 
-            description: 'Seconds to sleep before TF cleaup (if selected)')
+            description: 'Seconds to sleep before TF destroy of all infra (if selected)')
         }
          
 
