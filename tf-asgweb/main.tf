@@ -59,15 +59,16 @@ module "networking" {
   source = "../terraform-modules/networking"
 
   #module inputs
-  environment                  = "${var.environment}"
-  vpc_name                     = "${var.vpc_name}"
-  vpc_cidr                     = "${var.vpc_cidr}"
-  publicsubnet_cidrs           = ["${var.publicsubnet_one_cidr}", "${var.publicsubnet_two_cidr}"]
-  privatesubnet_cidrs          = ["${var.privatesubnet_one_cidr}", "${var.privatesubnet_two_cidr}"]
-  availability_zones           = ["${var.azs_uswest2}"]
-  database_privatesubnet_cidrs = ["${var.private_db_subnet_one_cidr}", "${var.private_db_subnet_two_cidr}"]
-  enable_natgateway            = "true"
-  enable_bastion               = "true"
+  environment         = "${var.environment}"
+  vpc_name            = "${var.vpc_name}"
+  vpc_cidr            = "${var.vpc_cidr}"
+  publicsubnet_cidrs  = ["${var.publicsubnet_one_cidr}", "${var.publicsubnet_two_cidr}"]
+  privatesubnet_cidrs = ["${var.privatesubnet_one_cidr}", "${var.privatesubnet_two_cidr}"]
+  availability_zones  = ["${var.azs_uswest2}"]
+
+  #database_privatesubnet_cidrs = ["${var.private_db_subnet_one_cidr}", "${var.private_db_subnet_two_cidr}"]
+  enable_natgateway = "true"
+  enable_bastion    = "true"
 
   #TODO - add option for nat instances only for cheap dev/testing env??
 
