@@ -119,22 +119,18 @@ module "asg_webservers" {
   asg_minsize      = 2
   asg_maxsize      = 4
   asg_elbcapacity  = 2
-
-  #asg_subnets = ["${module.networking.private_subnetone_id}","${module.networking.private_subnettwo_id}"]
-  asg_subnets = ["${module.networking.private_subnets}"]
-  lc_keyname  = "${var.key_name_uswest2}"
+  asg_subnets      = ["${module.networking.private_subnets}"]
+  lc_keyname       = "${var.key_name_uswest2}"
 
   #lc_keyfile        = "${var.key_file_uswest2}"
   lc_instancetype   = "t2.micro"
   lc_instanceuser   = "ubuntu"
   lc_imageid        = "${var.ami}"
   lc_securitygroups = ["${module.networking.clusterweb_security_group_id}"]
-  lc_userdata       = ""
 
   #lc_userdata        = "${data.template_file.webservers_userdata.rendered}"
   elb_securitygroups = ["${module.networking.clusterweb_elb_security_group_id}"]
 
-  #elb_subnets = ["${module.networking.public_subnetone_id}","${module.networking.public_subnettwo_id}"]
   elb_subnets                     = ["${module.networking.public_subnets}"]
   elb_healthythreshold            = 2
   elb_unhealthythreshold          = 2

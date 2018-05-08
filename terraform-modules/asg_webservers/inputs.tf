@@ -65,6 +65,7 @@ variable "lc_securitygroups" {
 
 variable "lc_userdata" {
   description = "The current env to build for"
+  default     = " "
 }
 
 variable "elb_securitygroups" {
