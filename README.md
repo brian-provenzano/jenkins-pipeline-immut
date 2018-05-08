@@ -35,7 +35,7 @@ To get started do the following (this isn't step by step so it assumes some very
 - Deploy as ASG/ELB or simple web server instance; default is false for simple web instance (boolean)
 - How long to sleep job after TF creates infra so we can test/view what was done. *
 
-* These steps mainly there since this is a lab/test to make sure costs are low and/or stay in free tier.
+NOTE: *These steps mainly there since this is a lab/test to make sure costs are low and/or stay in free tier.
 
 ### TODO
 - packer build AMI in AWS with code baked (build etc); currently only configures a static instance of Apache
