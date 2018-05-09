@@ -21,7 +21,7 @@ variable "environment" {
 
 #templates for instances / launch configs
 data "template_file" "bastion_userdata" {
-  template = "${file("../tf-global/files/bootstraps/config-bastion.txt")}"
+  template = "${file("../global/files/bootstraps/config-bastion.txt")}"
 
   vars {
     bastion_elasticip_id = "${module.networking.bastion_elasticip_id}"
@@ -30,7 +30,7 @@ data "template_file" "bastion_userdata" {
 }
 
 data "template_file" "webservers_userdata" {
-  template = "${file("../tf-global/files/bootstraps/config-singleweb.sh")}"
+  template = "${file("../global/files/bootstraps/config-singleweb.sh")}"
 
   vars {
     # normally this is done by changing AMI (new AMI built with new code), 
