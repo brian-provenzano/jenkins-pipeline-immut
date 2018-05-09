@@ -8,9 +8,11 @@ pipeline {
         AWS_ACCESS_KEY_ID = "${env.AWS_ID_USR}"
         AWS_SECRET_ACCESS_KEY = "${env.AWS_ID_PSW}"
         NO_BASH_HISTORY = "set +o history"
+        ANSIBLE_PLAYBOOK = "../ansible/apache-playbook-aws.yml"
+        PACKER_POSTPROCESS = ".././get_ami.sh"
     }
 
-    parameters { 
+    parameters {
         booleanParam(name: 'TF_CLEANUP', defaultValue: true, 
             description: 'Cleanup the AWS resources  (TF destroy) when we are done') 
         booleanParam(name: 'AMI_CLEANUP', defaultValue: true, 
@@ -20,22 +22,22 @@ pipeline {
         string(name: 'TF_CLEANUP_SLEEP', defaultValue: '300', 
             description: 'Seconds to sleep before TF destroy of all infra (if selected)')
         }
-         
 
     options {
         buildDiscarder(logRotator(numToKeepStr:'5', artifactNumToKeepStr: '3'))
     }
         //TODO :
         //Build the small app/code, run tests , Create packer image configured via ansible ; pack in the new code
+        //create a groovy lib/script to handle prepending no-bash-history instead of this manual env var hack
     stages{
         
          stage('Check-Update Terraform Binary'){
             agent any
             steps{
                 script{
-                    //TODO - update TF if requested
-                    def tfexit = sh returnStatus: true, script: 'terraform --version'
-                    echo "return code TF: ${tfexit}"
+                    //TODO - update TF using get-hashicorp if requested; create a build param option and logic to check TF output if new ver avail
+                    //def tfexit = sh returnStatus: true, script: 'terraform --version'
+                    //echo "return code TF: ${tfexit}"
                     def tfout = sh returnStdout: true, script: 'terraform --version'
                     echo "tf output: ${tfout}"
                 }
@@ -48,8 +50,8 @@ pipeline {
                 expression { params.TF_ASG != true }
             }
             steps{
-                dir('tf-singleweb'){
-                    sh "terraform init -input=false -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}'"
+                dir('terraform/singlewebserver'){
+                    sh "${NO_BASH_HISTORY} && terraform init -input=false -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}'"
                 }
             }
         }
@@ -60,8 +62,8 @@ pipeline {
                 expression { params.TF_ASG == true }
             }
             steps{
-                dir('tf-asgweb'){
-                    sh "terraform init -input=false -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}'"
+                dir('terraform/asgwebserver'){
+                    sh "${NO_BASH_HISTORY} && terraform init -input=false -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}'"
                 }
             }
         }
@@ -70,11 +72,13 @@ pipeline {
             agent any
             steps{
                 echo "Create AWS AMI using Packer"
-                sh 'if [ -f manifest.json ]; then rm manifest.json; fi'
-                sh "packer build -var 'aws_access_key=${AWS_ACCESS_KEY_ID}' -var 'aws_secret_key=${AWS_SECRET_ACCESS_KEY}' webserverAMI.json"
-                //this is exposed via packer in post processor - see packer json above
-                sh 'cat ami.txt'
-                //sh 'export NEWAMI=$(cat ami.txt | tr -d \'[:space:]\')'
+                dir('web-images'){
+                    sh 'if [ -f manifest.json ]; then rm manifest.json; fi'
+                    sh "${NO_BASH_HISTORY} && packer build -var 'postscript=${ANSIBLE_PLAYBOOK}' -var 'playbook=${ANSIBLE_PLAYBOOK}' -var 'aws_access_key=${AWS_ACCESS_KEY_ID}' -var 'aws_secret_key=${AWS_SECRET_ACCESS_KEY}' webserverAMI.json"
+                    //The packer post processor script creates ami.txt to store the name of our AMI to use in later stages
+                    //sh 'cat ami.txt'
+                    //sh 'export NEWAMI=$(cat ami.txt | tr -d \'[:space:]\')'
+                }
             }
         }
 
@@ -89,20 +93,14 @@ pipeline {
             steps{
                 echo "Start Deploy Web Server AMI"
                 echo "This is the AMI we are deploying from the txt file: ${env.NEWAMI}"
-
-                dir('tf-singleweb'){
+                //TODO: Possible make this manual sep step (possibly) for human approval..review the plan file first then apply.
+                dir('terraform/singlewebserver'){
                     echo "Deploying AMI to Single Web Server (No ASG)"
-                    sh "terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
-                    sh "terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                    sh "${NO_BASH_HISTORY} && terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                    sh "${NO_BASH_HISTORY} && terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 }
-
                 //sh "terraform plan -out webserver.plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
-                //TODO: run tf apply - this should be a sep step (possibly) for human approval..something to think on
                 //sh "terraform apply \"webserver.plan\" -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
-                //echo "This is the AMI from the txt file - trimmed: "
-                //sh 'export NEWAMI=$(cat ami.txt | tr -d \'[:space:]\')'
-                //sh 'echo ${NEWAMI}'
-
             }
         }
         
@@ -117,11 +115,11 @@ pipeline {
             steps{
                 echo "Start Deploy Web Server AMI"
                 echo "This is the AMI we are deploying from the txt file: ${env.NEWAMI}"
-
-                dir('tf-asgweb'){
+                //TODO: Possible make this manual sep step (possibly) for human approval..review the plan file first then apply.
+                dir('terraform/asgwebserver'){
                     echo "Deploying AMI to ASG / ELB Web Servers"
-                    sh "terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
-                    sh "terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                    sh "${NO_BASH_HISTORY} && terraform plan -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                    sh "${NO_BASH_HISTORY} && terraform apply -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 }
             }
         }
@@ -136,15 +134,13 @@ pipeline {
                 expression { params.TF_CLEANUP == true && params.TF_ASG != true }
             }
             steps{
-                //TODO cleanup TF infra if param present; maybe... since this is testing
                 echo "Cleanup TF infra / destroy - Single Web Server (No ASG)"
-
                 script {
                     def sleeptime = params.TF_CLEANUP_SLEEP
                     sleep sleeptime.toInteger() //sleep time before destroying infra to allow a bit of testing
                 }
-                dir('tf-singleweb'){
-                    sh "terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                dir('terraform/singlewebserver'){
+                    sh "${NO_BASH_HISTORY} && terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 }
             }
         }
@@ -158,15 +154,13 @@ pipeline {
                 expression { params.TF_CLEANUP == true && params.TF_ASG == true }
             }
             steps{
-                //TODO cleanup TF infra if param present; maybe... since this is testing
                 echo "Cleanup TF infra / destroy -  ASG / ELB Web Servers"
-
                 script {
                     def sleeptime = params.TF_CLEANUP_SLEEP
                     sleep sleeptime.toInteger() //sleep time before destroying infra to allow a bit of testing
                 }
-                dir('tf-asgweb'){
-                    sh "terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
+                dir('terraform/asgwebserver'){
+                    sh "${NO_BASH_HISTORY} && terraform destroy -auto-approve -var 'aws_accesskey_uswest2=${AWS_ACCESS_KEY_ID}' -var 'aws_secretkey_uswest2=${AWS_SECRET_ACCESS_KEY}' -var 'key_name_uswest2=aws-uswest2-oregon-key' -var 'name=webserver' -var 'ami=${env.NEWAMI}'"
                 }
             }
         }
@@ -177,10 +171,10 @@ pipeline {
                 expression { params.AMI_CLEANUP == true && params.TF_CLEANUP == true }
             }
             steps{
-                //cleanup AMI created - since this is testing :  ec2-deregister,ec2-delete-snapshot 
-                echo "Cleanup AMI - delete snapshot and AMI deregister - this is lab/testing"
+                //cleanup AMI - since this is testing :  ec2-deregister,ec2-delete-snapshot 
+                echo "Cleanup AMI - delete snapshot and AMI deregister - (this is lab/testing function)"
                 sh "chmod +x cleanup_ami.sh"
-                sh "./cleanup_ami.sh ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} us-west-2"
+                sh "${NO_BASH_HISTORY} && ./cleanup_ami.sh ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} us-west-2"
             }
         }
     }
