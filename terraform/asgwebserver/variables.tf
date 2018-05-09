@@ -30,7 +30,7 @@ data "template_file" "bastion_userdata" {
 }
 
 data "template_file" "webservers_userdata" {
-  template = "${file("../global/files/bootstraps/config-singleweb.sh")}"
+  template = "${file("../global/files/bootstraps/config-singleweb-showip.sh")}"
 
   vars {
     # normally this is done by changing AMI (new AMI built with new code), 

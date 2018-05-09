@@ -129,7 +129,7 @@ module "asg_webservers" {
   lc_imageid        = "${var.ami}"
   lc_securitygroups = ["${module.networking.clusterweb_security_group_id}"]
 
-  #lc_userdata        = "${data.template_file.webservers_userdata.rendered}"
+  lc_userdata        = "${data.template_file.webservers_userdata.rendered}"
   elb_securitygroups = ["${module.networking.clusterweb_elb_security_group_id}"]
 
   elb_subnets                     = ["${module.networking.public_subnets}"]
