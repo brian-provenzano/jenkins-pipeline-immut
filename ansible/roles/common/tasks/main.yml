@@ -12,7 +12,9 @@
     - "{{ ansible_distribution }}.yml"
     - "{{ ansible_os_family }}.yml"
     - "default.yml"
-  when: (pip_pkgname is not defined or pip3_pkgname is not defined)
+  when:
+    - pip_pkgname is not defined
+    - pip3_pkgname is not defined
 
 
 #TODO - conditionals for RHEL based systems
