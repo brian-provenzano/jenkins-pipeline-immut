@@ -5,6 +5,16 @@
 #     var: hostvars[inventory_hostname]
 #     verbosity: 4
 
+# Load a variable file based on the OS type, or a default if not found.
+- include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version | int}}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+  when: (pip_pkgname is not defined or pip3_pkgname is not defined)
+
+
 #TODO - conditionals for RHEL based systems
 #also consider moving this to another role to prevent accidental playbook upgrades...
 - name: update and upgrade apt packages
@@ -21,4 +31,14 @@
 - name: install git
   package: 
     name: git
+    state: present
+
+- name: install pip2
+  package: 
+    name: "{{ pip_pkgname }}"
+    state: present
+  
+- name: install pip3
+  package: 
+    name: "{{ pip3_pkgname }}"
     state: present
