@@ -3,7 +3,7 @@
 - name: provision ubuntu 18.04LTS aws ami
   hosts: all
   remote_user: ubuntu
-  gather_facts: false
+  gather_facts: true
   # - ubuntu 18.04 - needs this since python2 (/usr/bin/python) is not installed by default
   pre_tasks:
     - raw: test -e /usr/bin/python || (ln -s /usr/bin/python3 /usr/bin/python)
