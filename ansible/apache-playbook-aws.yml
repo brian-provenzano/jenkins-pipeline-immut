@@ -1,14 +1,20 @@
 ---
 #--For this playbook - only run either "apache-ssl" OR "apachessl-le" (letsencrypt certs) NOT both!!
-- name: provision aws ami
+- name: provision ubuntu 18.04LTS aws ami
   hosts: all
   remote_user: ubuntu
   gather_facts: false
-  # - ubuntu 16.04 - needs this since python2 is not installed by default
+  # - ubuntu 18.04 - needs this since python2 (/usr/bin/python) is not installed by default
   pre_tasks:
     - raw: test -e /usr/bin/python || (ln -s /usr/bin/python3 /usr/bin/python)
+    - name: Find current private hostname
+      command: curl http://169.254.169.254/latest/meta-data/local-hostname
+      register: private_instance_hostname
+    - set_fact:
+        private_instance_hostname: "{{ private_instance_hostname.stdout }}"
   roles:
     - common
+    - aws
     - apache
     #- apache-ssl
     #- apache-ssl-le

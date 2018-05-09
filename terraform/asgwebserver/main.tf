@@ -34,14 +34,14 @@ data "aws_route53_zone" "selected" {
 # Role for EIP access
 resource "aws_iam_role" "ec2_eip_access" {
   name               = "EC2EIPAccess"
-  assume_role_policy = "${file("../tf-global/files/iam/roles/assume-role-policy-ec2.txt")}"
+  assume_role_policy = "${file("../global/files/iam/roles/assume-role-policy-ec2.txt")}"
 }
 
 # Policy for EIP access
 resource "aws_iam_role_policy" "AllowEC2ManageEIP" {
   name   = "AllowEC2ManageEIP"
   role   = "${aws_iam_role.ec2_eip_access.name}"
-  policy = "${file("../tf-global/files/iam/roles/policy-allowmanage-eip.txt")}"
+  policy = "${file("../global/files/iam/roles/policy-allowmanage-eip.txt")}"
 }
 
 # Instance profile to attach to the instances
@@ -56,7 +56,7 @@ resource "aws_iam_instance_profile" "EC2ManageEIP" {
 
 # -- CREATE vpc, subnets, security groups, eips, network ACLs etc.
 module "networking" {
-  source = "../terraform-modules/networking"
+  source = "../../terraform-modules/networking"
 
   #module inputs
   environment         = "${var.environment}"
@@ -83,7 +83,7 @@ module "networking" {
 
 # -- CREATE bastion server (w/ autoscaling)
 module "bastion" {
-  source = "../terraform-modules/bastion"
+  source = "../../terraform-modules/bastion"
 
   #module inputs
   environment      = "${var.environment}"
@@ -109,7 +109,7 @@ module "bastion" {
 
 # -- CREATE webservers cluster (w/ autoscaling)
 module "asg_webservers" {
-  source = "../terraform-modules/asg_webservers"
+  source = "../../terraform-modules/asg_webservers"
 
   #module inputs
   environment      = "${var.environment}"

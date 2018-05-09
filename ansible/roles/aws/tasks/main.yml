@@ -1,0 +1,14 @@
+---
+# TODO : temp just to check n stuff (remove later)
+# - name: Display all variables/facts known for a host
+#   debug:
+#     var: hostvars[inventory_hostname]
+#     verbosity: 4
+#TODO - conditionals for RHEL based systems
+- name: install aws cli
+  pip:
+    name: awscli
+    state: present
+    executable: pip3
+
+#TODO - options: assign a IAM role to allow usage of AWS cli (might do this via TF instead)
