@@ -74,7 +74,7 @@ pipeline {
                 echo "Create AWS AMI using Packer"
                 dir('web-images'){
                     sh 'if [ -f manifest.json ]; then rm manifest.json; fi'
-                    sh "packer build -var 'postscript=${ANSIBLE_PLAYBOOK}' -var 'playbook=${ANSIBLE_PLAYBOOK}' -var 'aws_access_key=${AWS_ACCESS_KEY_ID}' -var 'aws_secret_key=${AWS_SECRET_ACCESS_KEY}' webserverAMI.json"
+                    sh "packer build -var 'postscript=${PACKER_POSTPROCESS}' -var 'playbook=${ANSIBLE_PLAYBOOK}' -var 'aws_access_key=${AWS_ACCESS_KEY_ID}' -var 'aws_secret_key=${AWS_SECRET_ACCESS_KEY}' webserverAMI.json"
                     //The packer post processor script creates ami.txt to store the name of our AMI to use in later stages
                     //sh 'cat ami.txt'
                     //sh 'export NEWAMI=$(cat ami.txt | tr -d \'[:space:]\')'
