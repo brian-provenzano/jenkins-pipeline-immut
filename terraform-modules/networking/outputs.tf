@@ -32,17 +32,17 @@ output "bastion_elasticip" {
   value = "${element(split(",", join(",", aws_eip.bastion.*.public_ip)), 0)}"
 }
 
-output "rds_security_group_id" {
-  value = "${aws_security_group.rds_instance.id}"
-}
+# output "rds_security_group_id" {
+#   value = "${aws_security_group.rds_instance.id}"
+# }
 
-output "jenkinsmaster_security_group_id" {
-  value = "${aws_security_group.jenkinsmaster_instance.id}"
-}
+# output "jenkinsmaster_security_group_id" {
+#   value = "${aws_security_group.jenkinsmaster_instance.id}"
+# }
 
-output "jenkinsslave_security_group_id" {
-  value = "${aws_security_group.jenkinsslave_instance.id}"
-}
+# output "jenkinsslave_security_group_id" {
+#   value = "${aws_security_group.jenkinsslave_instance.id}"
+# }
 
 output "simpleweb_security_group_id" {
   value = "${aws_security_group.ssh_web_instance.id}"
@@ -60,16 +60,10 @@ output "database_subnets" {
   value = ["${aws_subnet.private_database.*.id}"]
 }
 
-# output "database_subnet_group_id" {
-#   value = "${aws_db_subnet_group.database_group.id}"
-# }
 output "database_subnet_group_id" {
   value = "${element(split(",", join(",", aws_db_subnet_group.database_group.*.id)), 0)}"
 }
 
-# output "database_subnet_group_name" {
-#   value = "${aws_db_subnet_group.database_group.name}"
-# }
 output "database_subnet_group_name" {
   value = "${element(split(",", join(",", aws_db_subnet_group.database_group.*.name)), 0)}"
 }
