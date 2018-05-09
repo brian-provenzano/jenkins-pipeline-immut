@@ -16,9 +16,18 @@
     - enable apache 
     - start apache
 
-- name: Upload default index.html for host
-  copy: src=default-apache-index.html dest=/var/www/html/index.html mode=0644
-  ignore_errors: True
+# - name: Upload default index.html for host
+#   copy: src=default-apache-index.html dest=/var/www/html/index.html mode=0644
+#   ignore_errors: True
+
+- name: Install default apache index for specified site
+  template:
+    src: default-index.j2
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
 
 - name: Install default apache site conf for specified site
   template:
